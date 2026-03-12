@@ -94,4 +94,3 @@ pipeline {
             echo 'Confragulations on success build'
         }
     }
-}
