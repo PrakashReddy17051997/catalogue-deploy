@@ -17,6 +17,8 @@ pipeline {
     parameters{
         string(name: 'VERSION', defaultValue: '', description: 'Enter the artifact version to be deployed')
         string(name: 'environment',  defaultValue: 'dev', description: 'Enter the target environment to be deployed')
+        booleanParam(name: 'Destroy', defaultValue: 'false', description: 'What is Destroy?')
+        booleanParam(name: 'Create', defaultValue: 'false', description: 'What is Create?')
     }
     stages{
         stage('Print version'){
@@ -47,51 +49,36 @@ pipeline {
             }
             }
 
-            stage('Install Dependencies'){
-                steps{
-                    sh """
-                        npm install
-                    """                
-
-            }
-            }
-            stage('Build'){
-                steps{
-                    sh """
-                    ls -la
-                    zip -q -r catalogue.zip ./* -x ".git" -x ".zip"
-                    ls -ltr
-                    """
+            
+            
+        stage('Apply') {
+            when{
+                expression{
+                    params.Create
                 }
             }
-            stage('Publish Artifact') {
             steps {
-                 nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${nexusUrl}",
-                    groupId: 'com.roboshop',
-                    version: "${packageVersion}",
-                    repository: 'catalogue',
-                    credentialsId: 'nexus-auth',
-                    artifacts: [
-                        [artifactId: 'catalogue',
-                        classifier: '',
-                        file: 'catalogue.zip',
-                        type: 'zip']
-                    ]
-                )
+                sh """
+                    cd terraform
+                    terraform apply -var-file=${params.environment}/${params.environment}.tfvars -var="app_version=${params.VERSION}" -auto-approve
+                """
             }
         }
-            stage('Deploy') {
-                steps {
-                    sh """
-                        echo "Hello I am deployment completed to nexus"
-                        echo "$GREETING"
-                        sleep 20
-                        """
+        stage('Destroy') {
+            when{
+                expression{
+                    params.Destroy
                 }
             }
+            steps {
+                sh """
+                    cd terraform
+                    terraform destroy -var-file=${params.environment}/${params.environment}.tfvars -var="app_version=${params.VERSION}" -auto-approve
+                """
+            }
+        }
+        
+    }
           
     }
     // post build
