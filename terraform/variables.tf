@@ -31,3 +31,8 @@ variable "zone_name" {
 variable "app_version" {
   
 }
+
+variable "iam_instance_profile" {
+    default = "EC2_full_access_role_for_shell_script"
+  
+}
