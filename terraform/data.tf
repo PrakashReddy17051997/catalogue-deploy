@@ -21,6 +21,13 @@ data "aws_route53_zone" "selected" {
   private_zone = false
   
 }
+data "aws_ssm_parameter" "ec2_instance_password"{
+  name = "/${var.project_name}/${var.environment}/ec2_instance_password"
+}
+data "aws_ssm_parameter" "ec2_instance_username"{
+  name = "/${var.project_name}/${var.environment}/ec2_instance_username"
+}
+
 
 data "aws_ami" "centos8" {
   owners      = ["973714476881"]
